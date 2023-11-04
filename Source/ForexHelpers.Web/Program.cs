@@ -1,3 +1,5 @@
+using ForexHelpers.Web.Services;
+
 namespace ForexHelpers.Web
 {
 	public class Program
@@ -8,6 +10,8 @@ namespace ForexHelpers.Web
 
 			// Add services to the container.
 			builder.Services.AddRazorPages();
+			builder.Services.AddSingleton<ICurrencyInterestRatesService, EarnForexCurrencyInterestRatesService>();
+			builder.Services.AddHostedService<GetLatestCurrencyInterestRatesWorker>();
 
 			var app = builder.Build();
 
