@@ -21,10 +21,12 @@ namespace ForexHelpers.Tests.Services
 		[Test]
 		public async Task InterestRatesTable_ParsesCorrectly()
 		{
-			await _service.GetCurrencyInterestRates();
-			Assert.IsNotEmpty(_service.CurrencyInterestRates);
+			IEnumerable<CurrencyInterestRate> currencyInterestRates = await _service.GetCurrencyInterestRates();
+			Assert.IsNotEmpty(currencyInterestRates);
 
-			CurrencyInterestRate currencyInterestRate = _service.CurrencyInterestRates.First(x => x.CountryCode == "US");
+			// Run a simple check for USD
+			// No need for any additional checks as they are built into service
+			CurrencyInterestRate currencyInterestRate = currencyInterestRates.First(x => x.CountryCode == "US");
 			Assert.That(currencyInterestRate.CurrencyCode.Length, Is.EqualTo(3));
 		}
 	}

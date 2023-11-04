@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Diagnostics;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using ForexHelpers.Web.Models;
 using HtmlAgilityPack;
@@ -9,14 +10,22 @@ namespace ForexHelpers.Web.Services
 {
 	public class EarnForexCurrencyInterestRatesService : ICurrencyInterestRatesService
 	{
-		public IEnumerable<CurrencyInterestRate> CurrencyInterestRates
-		{
-			get; private set;
-		} = Array.Empty<CurrencyInterestRate>();
+		private CurrencyInterestRate[] _currencyInterestRates = Array.Empty<CurrencyInterestRate>();
 
-		public async Task GetCurrencyInterestRates()
+		public async Task<IEnumerable<CurrencyInterestRate>> GetCurrencyInterestRates()
 		{
-			CurrencyInterestRates = await ParseCurrencyInterestRates();
+			if (_currencyInterestRates.Length == 0)
+			{
+				await RefreshCurrencyInterestRates();
+			}
+
+			Trace.Assert(_currencyInterestRates.Length != 0);
+			return _currencyInterestRates;
+		}
+
+		public async Task RefreshCurrencyInterestRates()
+		{
+			_currencyInterestRates = await ParseCurrencyInterestRates();
 		}
 
 		private string GetCurrencyCodeByCountryCode(string countryCode)
@@ -62,7 +71,7 @@ namespace ForexHelpers.Web.Services
 			currencyCode = countryCode == "EU" ? "EUR" : GetCurrencyCodeByCountryCode(countryCode);
 		}
 
-		private async Task<IEnumerable<CurrencyInterestRate>> ParseCurrencyInterestRates()
+		private async Task<CurrencyInterestRate[]> ParseCurrencyInterestRates()
 		{
 			HtmlWeb web = new();
 			HtmlDocument doc = await web.LoadFromWebAsync("https://www.earnforex.com/interest-rates-table/");

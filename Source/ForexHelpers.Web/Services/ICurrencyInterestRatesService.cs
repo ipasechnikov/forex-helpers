@@ -4,7 +4,7 @@ namespace ForexHelpers.Web.Services
 {
 	public interface ICurrencyInterestRatesService
 	{
-		IEnumerable<CurrencyInterestRate> CurrencyInterestRates { get; }
-		Task GetCurrencyInterestRates();
+		Task<IEnumerable<CurrencyInterestRate>> GetCurrencyInterestRates();
+		Task RefreshCurrencyInterestRates();
 	}
 }
