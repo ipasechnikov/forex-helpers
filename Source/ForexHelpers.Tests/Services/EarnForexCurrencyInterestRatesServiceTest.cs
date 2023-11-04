@@ -1,7 +1,5 @@
 ﻿using ForexHelpers.Web.Models;
 using ForexHelpers.Web.Services;
-
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ForexHelpers.Tests.Services
@@ -26,8 +24,8 @@ namespace ForexHelpers.Tests.Services
 			await _service.GetCurrencyInterestRates();
 			Assert.IsNotEmpty(_service.CurrencyInterestRates);
 
-			CurrencyInterestRate currencyInterestRate = _service.CurrencyInterestRates.First();
-			Assert.Equals(currencyInterestRate.CurrencyCode.Length, 2);
+			CurrencyInterestRate currencyInterestRate = _service.CurrencyInterestRates.First(x => x.CountryCode == "US");
+			Assert.That(currencyInterestRate.CurrencyCode.Length, Is.EqualTo(3));
 		}
 	}
 }

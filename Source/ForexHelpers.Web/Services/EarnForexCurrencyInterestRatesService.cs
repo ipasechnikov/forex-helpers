@@ -1,10 +1,9 @@
-﻿using System.Text.Json;
+﻿using System.Globalization;
 using System.Text.RegularExpressions;
-
-using ForexHelpers.Web.Configs;
 using ForexHelpers.Web.Models;
-
 using HtmlAgilityPack;
+using RESTCountries.NET.Models;
+using RESTCountries.NET.Services;
 
 namespace ForexHelpers.Web.Services
 {
@@ -20,31 +19,35 @@ namespace ForexHelpers.Web.Services
 			CurrencyInterestRates = await ParseCurrencyInterestRates();
 		}
 
-		private async Task<IEnumerable<CurrencyInterestRate>> ParseCurrencyInterestRates()
+		private string GetCurrencyCodeByCountryCode(string countryCode)
 		{
-			HtmlWeb web = new();
-			HtmlDocument doc = await web.LoadFromWebAsync("https://www.earnforex.com/interest-rates-table/");
+			Country? country = RestCountriesService.GetCountryByCode(countryCode);
+			if (country is null)
+			{
+				throw new Exception($"No country with code '{countryCode}' was found");
+			}
 
-			HtmlNodeCollection currentInterestRatesTableRows = doc.DocumentNode.SelectNodes("//div[@class='rates__table-row']");
-			IEnumerable<CurrencyInterestRate> currencyInterestRates = currentInterestRatesTableRows.Select(ParseCurrencyInterestRatesTableRow);
-			return currencyInterestRates;
+			// If a country have multiple currencies, remove Euro if present
+			string? currencyCode = country.Currencies?.Keys
+				.Where(code => code != "EUR")
+				.First();
+			if (currencyCode is null)
+			{
+				throw new Exception($"No currency for country code '{countryCode} was found'");
+			}
+
+			return currencyCode;
 		}
 
-		private CurrencyInterestRate ParseCurrencyInterestRatesTableRow(HtmlNode tableRow)
+		private void ParseCentralBankCell(HtmlNode centralBankCell, out string centralBank)
 		{
-			HtmlNodeCollection cells = tableRow.SelectNodes("/div[@class='rates__table-col']");
-			HtmlNode countryCell = cells[0];
-			HtmlNode currentRateCell = cells[1];
-			HtmlNode latestChangeCell = cells[2];
-			HtmlNode centralBankCell = cells[3];
-
-			throw new NotImplementedException();
+			centralBank = centralBankCell.SelectSingleNode("./a").InnerText;
 		}
 
-		private string ParseCountryCode(HtmlNode countryCell)
+		private void ParseCountryCell(HtmlNode countryCell, out string countryCode, out string currencyCode)
 		{
 			string countyFlagImgSrc = countryCell
-				.SelectSingleNode("/img")
+				.SelectSingleNode("./img")
 				.GetAttributeValue("src", string.Empty);
 
 			Match match = Regex.Match(countyFlagImgSrc, @".*/flags/(\w{2})\.gif");
@@ -53,24 +56,58 @@ namespace ForexHelpers.Web.Services
 				throw new Exception("Failed to get country code from flag image name");
 			}
 
-			string countryCode = match.Groups[1].Value.ToUpper();
-			return countryCode;
+			countryCode = match.Groups[1].Value.ToUpper();
+
+			// Special case for European Union because it's not a country but an union
+			currencyCode = countryCode == "EU" ? "EUR" : GetCurrencyCodeByCountryCode(countryCode);
 		}
 
-		private decimal ParseCurrentRateCell(HtmlNode currentRateCell)
+		private async Task<IEnumerable<CurrencyInterestRate>> ParseCurrencyInterestRates()
 		{
-			string currentRatePattern = @"(\-?\d+\.\d+)%";
-			MatchCollection matches = Regex.Matches(currentRateCell.InnerText, currentRatePattern);
+			HtmlWeb web = new();
+			HtmlDocument doc = await web.LoadFromWebAsync("https://www.earnforex.com/interest-rates-table/");
 
-			// Sometimes an interest rate is written as an interval (e.g. "5.25% — 5.50%")
-			decimal averageCurrentRate = matches.Select(match =>
+			HtmlNodeCollection currentInterestRatesTableRows = doc.DocumentNode.SelectNodes("//div[@class='rates__table-row']");
+			CurrencyInterestRate[] currencyInterestRates = currentInterestRatesTableRows.Select(ParseCurrencyInterestRatesTableRow).ToArray();
+			return currencyInterestRates;
+		}
+
+		private CurrencyInterestRate ParseCurrencyInterestRatesTableRow(HtmlNode tableRow)
+		{
+			HtmlNodeCollection cells = tableRow.SelectNodes("./div[@class='rates__table-col']");
+			HtmlNode countryCell = cells[0];
+			HtmlNode currentRateCell = cells[1];
+			HtmlNode latestChangeCell = cells[2];
+			HtmlNode centralBankCell = cells[3];
+
+			ParseCountryCell(countryCell, out string countryCode, out string currencyCode);
+			ParseCurrentRateCell(currentRateCell, out decimal interestRate);
+			ParseLatestChangeCell(latestChangeCell, out DateTime latestChangeDate, out decimal latestChangeDiff);
+			ParseCentralBankCell(centralBankCell, out string centralBank);
+
+			return new CurrencyInterestRate(
+				countryCode,
+				currencyCode,
+				centralBank,
+				interestRate,
+				latestChangeDate,
+				latestChangeDiff
+			);
+		}
+
+		private void ParseCurrentRateCell(HtmlNode currentRateCell, out decimal interestRate)
+		{
+			MatchCollection matches = Regex.Matches(
+				currentRateCell.GetDirectInnerText().Trim(), @"(\-?\d+\.\d+)%"
+			);
+
+			// Sometimes an interest rate is stored as a range (e.g. "5.25% — 5.50%")
+			interestRate = matches.Select(match =>
 			{
 				string currentRateStr = match.Groups[1].Value;
 				decimal currentRate = decimal.Parse(currentRateStr);
 				return currentRate;
 			}).Average();
-
-			return averageCurrentRate;
 		}
 
 		private void ParseLatestChangeCell(
@@ -79,7 +116,43 @@ namespace ForexHelpers.Web.Services
 			out decimal latestChangeDiff
 		)
 		{
-			throw new NotImplementedException();
+			string changeDiffClass = latestChangeCell
+				.SelectSingleNode("./span[contains(@class, 'rates__moving')]")
+				.GetAttributeValue("class", string.Empty);
+
+			if (string.IsNullOrEmpty(changeDiffClass))
+			{
+				throw new Exception($"Failed to parse {nameof(changeDiffClass)}");
+			}
+
+			int changeDiffSign;
+			if (changeDiffClass.Contains("increased"))
+			{
+				changeDiffSign = 1;
+			}
+			else if (changeDiffClass.Contains("decreased"))
+			{
+				changeDiffSign = -1;
+			}
+			else
+			{
+				throw new Exception($"Failed to parse {nameof(changeDiffSign)}");
+			}
+
+			Match match = Regex.Match(
+				latestChangeCell.GetDirectInnerText().Trim(), @"(\d{4}-\d{2}-\d{2})\s+by\s+(\d+.\d+)%"
+			);
+
+			if (!match.Success)
+			{
+				throw new Exception($"Failed to parse {nameof(latestChangeDate)} and {nameof(latestChangeDiff)}");
+			}
+
+			string latestChangeDateStr = match.Groups[1].Value;
+			latestChangeDate = DateTime.ParseExact(latestChangeDateStr, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+			string latestChangeDiffStr = match.Groups[2].Value;
+			latestChangeDiff = changeDiffSign * decimal.Parse(latestChangeDiffStr);
 		}
 	}
 }
