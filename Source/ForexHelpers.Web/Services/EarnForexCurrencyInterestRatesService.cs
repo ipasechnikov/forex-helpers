@@ -10,22 +10,38 @@ namespace ForexHelpers.Web.Services
 {
 	public class EarnForexCurrencyInterestRatesService : ICurrencyInterestRatesService
 	{
-		private CurrencyInterestRate[] _currencyInterestRates = Array.Empty<CurrencyInterestRate>();
+		private IDictionary<string, CurrencyInterestRate> _currencyInterestRates = new Dictionary<string, CurrencyInterestRate>();
 
-		public async Task<IEnumerable<CurrencyInterestRate>> GetCurrencyInterestRates()
+		public async Task<CurrencyInterestRate> GetCurrencyInterestRate(string currencyCode)
 		{
-			if (_currencyInterestRates.Length == 0)
+			if (_currencyInterestRates.Count == 0)
 			{
 				await RefreshCurrencyInterestRates();
 			}
 
-			Trace.Assert(_currencyInterestRates.Length != 0);
-			return _currencyInterestRates;
+			Trace.Assert(_currencyInterestRates.Count != 0);
+			return _currencyInterestRates[currencyCode];
+		}
+
+		public async Task<IEnumerable<CurrencyInterestRate>> GetCurrencyInterestRates()
+		{
+			if (_currencyInterestRates.Count == 0)
+			{
+				await RefreshCurrencyInterestRates();
+			}
+
+			Trace.Assert(_currencyInterestRates.Count != 0);
+			return _currencyInterestRates.Values;
 		}
 
 		public async Task RefreshCurrencyInterestRates()
 		{
-			_currencyInterestRates = await ParseCurrencyInterestRates();
+			CurrencyInterestRate[] currencyInterestRates = await ParseCurrencyInterestRates();
+			_currencyInterestRates = currencyInterestRates
+				.ToDictionary(
+					currencyInterestRate => currencyInterestRate.CurrencyCode,
+					currencyInterestRate => currencyInterestRate
+				);
 		}
 
 		private string GetCurrencyCodeByCountryCode(string countryCode)
