@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ForexHelpers.Tests.Services
 {
-	public class EarnForexCurrencyInterestRatesServiceTest
+	internal class EarnForexCurrencyInterestRatesServiceTest
 	{
 		private EarnForexCurrencyInterestRatesService _service = null!;
 
