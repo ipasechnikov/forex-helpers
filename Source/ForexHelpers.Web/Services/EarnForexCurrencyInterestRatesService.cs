@@ -12,7 +12,7 @@ namespace ForexHelpers.Web.Services
 	{
 		private IDictionary<string, CurrencyInterestRate> _currencyInterestRates = new Dictionary<string, CurrencyInterestRate>();
 
-		public async Task<CurrencyInterestRate> GetCurrencyInterestRate(string currencyCode)
+		public async Task<CurrencyInterestRate?> GetCurrencyInterestRate(string currencyCode)
 		{
 			if (_currencyInterestRates.Count == 0)
 			{
@@ -20,7 +20,8 @@ namespace ForexHelpers.Web.Services
 			}
 
 			Trace.Assert(_currencyInterestRates.Count != 0);
-			return _currencyInterestRates[currencyCode];
+			_currencyInterestRates.TryGetValue(currencyCode, out CurrencyInterestRate? currencyInterestRate);
+			return currencyInterestRate;
 		}
 
 		public async Task<IEnumerable<CurrencyInterestRate>> GetCurrencyInterestRates()

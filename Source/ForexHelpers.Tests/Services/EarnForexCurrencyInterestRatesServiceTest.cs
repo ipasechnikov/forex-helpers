@@ -31,19 +31,20 @@ namespace ForexHelpers.Tests.Services
 		}
 
 		[Test]
-		public async Task GetCurrencyInterestRate_Returns_ExpectedCurrency()
+		public async Task GetCurrencyInterestRate_Returns_RequestedCurrency_IfCurrencyIsPresent()
 		{
-			string expectedCurrencyCode = "USD";
-			CurrencyInterestRate currencyInterestRate = await _service.GetCurrencyInterestRate(expectedCurrencyCode);
-			Assert.That(currencyInterestRate.CurrencyCode, Is.EqualTo(expectedCurrencyCode));
+			string requestedCurrencyCode = "USD";
+			CurrencyInterestRate? currencyInterestRate = await _service.GetCurrencyInterestRate(requestedCurrencyCode);
+			Assert.IsNotNull(currencyInterestRate);
+			Assert.That(currencyInterestRate.CurrencyCode, Is.EqualTo(requestedCurrencyCode));
 		}
 
 		[Test]
-		public void GetCurrencyInterestRate_ThrowsException_IfNoCurrencyFound()
+		public async Task GetCurrencyInterestRate_Returns_Null_IfRequestCurrencyIsMissing()
 		{
-			Assert.ThrowsAsync<KeyNotFoundException>(
-				async () => await _service.GetCurrencyInterestRate("ABC")
-			);
+			string requestedCurrencyCode = "ABC";
+			CurrencyInterestRate? currencyInterestRate = await _service.GetCurrencyInterestRate(requestedCurrencyCode);
+			Assert.IsNull(currencyInterestRate);
 		}
 	}
 }
