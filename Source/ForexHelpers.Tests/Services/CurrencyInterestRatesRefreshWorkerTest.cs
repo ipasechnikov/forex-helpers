@@ -1,6 +1,7 @@
 ﻿using ForexHelpers.Web.Models;
 using ForexHelpers.Web.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 
 namespace ForexHelpers.Tests.Services
 {
@@ -13,7 +14,28 @@ namespace ForexHelpers.Tests.Services
 		public void Setup()
 		{
 			ServiceCollection services = new ServiceCollection();
-			services.AddSingleton<ICurrencyInterestRatesService, EarnForexCurrencyInterestRatesService>();
+
+            Mock<ICurrencyInterestRatesService> serviceMock = new Mock<ICurrencyInterestRatesService>();
+			serviceMock.Setup(service => service.RefreshCurrencyInterestRates())
+				.Callback(() =>
+				{
+                    serviceMock.Setup(service => service.GetCurrencyInterestRates())
+                        .Returns(Task.FromResult<IEnumerable<CurrencyInterestRate>>(
+                            new CurrencyInterestRate[]
+                            {
+								new CurrencyInterestRate(
+									countryCode: "US",
+									currencyCode: "USD",
+									centralBank: "Federal Reserve System",
+									interestRate: 5.0m,
+									latestChangeDate: DateTime.Now,
+									latestChangeDiff: -1.0m
+								),
+                            }
+                        ));
+                });
+
+			services.AddSingleton(serviceMock.Object);
 
 			// We use AddHostedService to register workers in the app's DI container.
 			// But to improve tests quality and trigger worker manually, AddSingleton is called instead.
