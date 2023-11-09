@@ -1,4 +1,5 @@
-﻿using ForexHelpers.Web.Models;
+﻿using ForexHelpers.Tests.Mocks;
+using ForexHelpers.Web.Models;
 using ForexHelpers.Web.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,7 +13,7 @@ namespace ForexHelpers.Tests.Services
         public void Setup()
         {
             ServiceCollection services = new ServiceCollection();
-            services.AddSingleton<ICurrencyInterestRatesService, EarnForexCurrencyInterestRatesService>();
+            services.AddSingleton<ICurrencyInterestRatesService, MockCurrencyInterestRatesService>();
             services.AddSingleton<CurrencyPairsService>();
 
             ServiceProvider serviceProvider = services.BuildServiceProvider();
@@ -20,7 +21,7 @@ namespace ForexHelpers.Tests.Services
         }
 
         [Test]
-        public async Task GetCurrencyPairs_Returns_CurrencyPairs()
+        public async Task GetCurrencyPairs_ShouldReturn_CurrencyPairs()
         {
             IEnumerable<CurrencyPair> currencyPairs = await _service.GetCurrencyPairs();
             Assert.IsNotEmpty(currencyPairs);
