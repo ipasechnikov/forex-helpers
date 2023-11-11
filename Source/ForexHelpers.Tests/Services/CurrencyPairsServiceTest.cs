@@ -21,7 +21,7 @@ namespace ForexHelpers.Tests.Services
         }
 
         [Test]
-        public async Task GetCurrencyPairs_ShouldReturn_CurrencyPairs()
+        public async Task GetCurrencyPairs_ShouldReturn_NotEmptyListOfCurrencyPairs()
         {
             IEnumerable<CurrencyPair> currencyPairs = await _service.GetCurrencyPairs();
             Assert.IsNotEmpty(currencyPairs);

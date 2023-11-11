@@ -47,7 +47,7 @@ namespace ForexHelpers.Tests.Services
 		}
 
 		[Test]
-		public async Task RefreshWorker_Gets_CurrencyInterestRates_InBackground()
+		public async Task RefreshWorker_Should_GetCurrencyInterestRatesInBackground()
 		{
 			await _worker.StartAsync(CancellationToken.None);
 			IEnumerable<CurrencyInterestRate> currencyInterestRates = await _service.GetCurrencyInterestRates();

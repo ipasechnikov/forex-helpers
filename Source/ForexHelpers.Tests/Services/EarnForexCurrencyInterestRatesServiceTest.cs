@@ -19,7 +19,7 @@ namespace ForexHelpers.Tests.Services
 		}
 
 		[Test]
-		public async Task InterestRatesTable_ParsesCorrectly()
+		public async Task GetCurrencyInterestRates_Should_ParseHtmlInterestRatesTableCorrectly()
 		{
 			IEnumerable<CurrencyInterestRate> currencyInterestRates = await _service.GetCurrencyInterestRates();
 			Assert.IsNotEmpty(currencyInterestRates);
@@ -31,7 +31,7 @@ namespace ForexHelpers.Tests.Services
 		}
 
 		[Test]
-		public async Task GetCurrencyInterestRate_Returns_RequestedCurrency_IfCurrencyIsPresent()
+		public async Task GetCurrencyInterestRate_Should_ReturnRequestedCurrencyIfCurrencyIsPresent()
 		{
 			string requestedCurrencyCode = "USD";
 			CurrencyInterestRate? currencyInterestRate = await _service.GetCurrencyInterestRate(requestedCurrencyCode);
@@ -40,7 +40,7 @@ namespace ForexHelpers.Tests.Services
 		}
 
 		[Test]
-		public async Task GetCurrencyInterestRate_Returns_Null_IfRequestCurrencyIsMissing()
+		public async Task GetCurrencyInterestRate_Should_ReturnNullIfRequestCurrencyIsMissing()
 		{
 			string requestedCurrencyCode = "ABC";
 			CurrencyInterestRate? currencyInterestRate = await _service.GetCurrencyInterestRate(requestedCurrencyCode);
