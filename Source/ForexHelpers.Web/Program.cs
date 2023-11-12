@@ -11,7 +11,8 @@ namespace ForexHelpers.Web
 			// Add services to the container.
 			builder.Services.AddRazorPages();
 			builder.Services.AddSingleton<ICurrencyInterestRatesService, EarnForexCurrencyInterestRatesService>();
-			builder.Services.AddHostedService<CurrencyInterestRatesRefreshWorker>();
+            builder.Services.AddSingleton<ICurrencyPairsService, CurrencyPairsService>();
+            builder.Services.AddHostedService<CurrencyInterestRatesRefreshWorker>();
 
 			var app = builder.Build();
 

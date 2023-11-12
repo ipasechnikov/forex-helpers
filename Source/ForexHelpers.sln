@@ -5,7 +5,7 @@ VisualStudioVersion = 17.5.33627.172
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ForexHelpers.Web", "ForexHelpers.Web\ForexHelpers.Web.csproj", "{747B9DB0-8146-43DC-A104-D279B602C644}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ForexHelpers.Tests", "ForexHelpers.Tests\ForexHelpers.Tests.csproj", "{C8C815F1-5FE5-4A07-854F-F8E4A9AE74F5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ForexHelpers.Tests", "ForexHelpers.Tests\ForexHelpers.Tests.csproj", "{C8C815F1-5FE5-4A07-854F-F8E4A9AE74F5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

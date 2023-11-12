@@ -1,0 +1,42 @@
+﻿@page
+@model ForexHelpers.Web.Pages.SwingPositionRecommendationModel
+@{
+	ViewData["Title"] = "Swing Position Recommendation";
+}
+
+<table class="table">
+	<thead>
+		<tr>
+			<th scope="col">Pair</th>
+			<th scope="col">Base Currency Interest Rate</th>
+			<th scope="col">Quote Currency Interest Rate</th>
+			<th scope="col">Interest Rate Diff (Base - Quote)</th>
+			<th scope="col">Recommended Position</th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (var currencyPair in Model.CurrencyPairs)
+		{
+			<tr>
+				<td>@currencyPair.Base@currencyPair.Quote</td>
+				<td>@currencyPair.BaseInterestRate%</td>
+				<td>@currencyPair.QuoteInterestRate%</td>
+				<td>@currencyPair.InterestRateDiff%</td>
+				<td>
+					@if (currencyPair.InterestRateDiff > 0)
+					{
+						<span>Long</span>
+					}
+					else if (currencyPair.InterestRateDiff < 0)
+					{
+						<span>Short</span>
+					}
+					else
+					{
+						<span>Long / Short</span>
+					}
+				</td>
+			</tr>
+		}
+	</tbody>
+</table>
