@@ -21,7 +21,7 @@
 		}
 	}
 
-	string GetRecommenedPosition(decimal interestRateDiff)
+	string GetRecommenededPosition(decimal interestRateDiff)
 	{
 		if (interestRateDiff > 0)
 		{
@@ -41,10 +41,12 @@
 <h1>@ViewData["Title"]</h1>
 
 <p>
-	This tool shows you a preferred position direction for swing trading.
-	<br />
+	This tool shows a preferred position direction for swing trading.
+</p>
+
+<p>
 	When you keep a position open for a few weeks, swap fees can add up and affect your overall profit or loss.
-	It is better to have a positive swap and trade in the direction of swap, this way you can increase your profit or reduce your loss.
+	It is better to have a positive swap and trade in the direction of the swap, this way you can increase your profit or reduce your loss.
 </p>
 
 <p>
@@ -53,31 +55,37 @@
 </p>
 
 <p>
-	Next time, when you find a good trading opportunity and ready to place an order, check if your desired position matches the recommended one.
+	Next time, when you find a good trading opportunity, check if your desired position matches the recommended one.
 </p>
 
-<table class="table">
+<table class="table table-striped">
 	<thead>
 		<tr>
-			<th scope="col">Currency Pair</th>
-			<th scope="col">Base Currency Interest Rate</th>
-			<th scope="col">Quote Currency Interest Rate</th>
-			<th scope="col">Interest Rate Diff (Base - Quote)</th>
-			<th scope="col">Recommended Position</th>
+			<th scope="col">#</th>
+			<th scope="col">Pair</th>
+			<th scope="col text-end">Base</th>
+			<th scope="col">Quote</th>
+			<th scope="col">Diff</th>
+			<th scope="col">Position</th>
 		</tr>
 	</thead>
 	<tbody>
+		@{
+			var i = 1;
+		}
 		@foreach (var currencyPair in Model.CurrencyPairs)
 		{
 			var positionClass = GetPositionClass(currencyPair.InterestRateDiff);
-			var recommendedPosition = GetRecommenedPosition(currencyPair.InterestRateDiff);
-			<tr>
+			var recommendedPosition = GetRecommenededPosition(currencyPair.InterestRateDiff);
+			<tr class="font-monospace">
+				<th scope="row">@i</th>
 				<td>@currencyPair.Base/@currencyPair.Quote</td>
-				<td>@currencyPair.BaseInterestRate%</td>
-				<td>@currencyPair.QuoteInterestRate%</td>
-				<td class="@positionClass">@currencyPair.InterestRateDiff%</td>
-				<td class="@positionClass">@recommendedPosition</td>
+				<td class="text-end">@currencyPair.BaseInterestRate.ToString("F2")%</td>
+				<td class="text-end">@currencyPair.QuoteInterestRate.ToString("F2")%</td>
+				<td class="text-end @positionClass">@currencyPair.InterestRateDiff.ToString("F2")%</td>
+				<td class="text-center @positionClass">@recommendedPosition</td>
 			</tr>
+			i++;
 		}
 	</tbody>
 </table>
