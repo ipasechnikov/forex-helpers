@@ -93,7 +93,7 @@ namespace ForexHelpers.Web.Services
 			HtmlWeb web = new();
 			HtmlDocument doc = await web.LoadFromWebAsync("https://www.earnforex.com/interest-rates-table/");
 
-			HtmlNodeCollection currentInterestRatesTableRows = doc.DocumentNode.SelectNodes("//div[@class='rates__table-row']");
+			HtmlNodeCollection currentInterestRatesTableRows = doc.DocumentNode.SelectNodes("//div[contains(@class, 'rates__table-row') and position()>1]");
 			CurrencyInterestRate[] currencyInterestRates = currentInterestRatesTableRows.Select(ParseCurrencyInterestRatesTableRow).ToArray();
 			return currencyInterestRates;
 		}
